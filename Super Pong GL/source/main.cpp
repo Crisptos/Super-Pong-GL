@@ -14,6 +14,9 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 960
 
+const float PADDLE_BOUNDS = 5.75f;
+const float PADDLE_SPEED = 8.0f;
+
 // Windowing
 SDL_Window* m_Window;
 SDL_GLContext m_glContext;
@@ -23,6 +26,7 @@ bool m_isRunning = false;
 Entity p1Paddle({0.0f, 0.0f, 2.0f});
 Entity p2Paddle({ 0.0f, 0.0f, -18.0f });
 Entity ball({0.0f, 0.0f, -6.0f});
+Entity arena({ 0.0f, 0.0f, -8.0f });
 
 Shader def;
 
@@ -46,22 +50,22 @@ void Input()
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 	if (currentKeyStates[SDL_SCANCODE_LEFT])
 	{
-		p1Paddle.position.x -= 4.0f * delta_time;
+		p1Paddle.position.x -= PADDLE_SPEED * delta_time;
 	}
 
 	if (currentKeyStates[SDL_SCANCODE_RIGHT])
 	{
-		p1Paddle.position.x += 4.0f * delta_time;
+		p1Paddle.position.x += PADDLE_SPEED * delta_time;
 	}
 
 	if (currentKeyStates[SDL_SCANCODE_A])
 	{
-		p2Paddle.position.x -= 4.0f * delta_time;
+		p2Paddle.position.x -= PADDLE_SPEED * delta_time;
 	}
 
 	if (currentKeyStates[SDL_SCANCODE_D])
 	{
-		p2Paddle.position.x += 4.0f * delta_time;
+		p2Paddle.position.x += PADDLE_SPEED * delta_time;
 	}
 
 	if (currentKeyStates[SDL_SCANCODE_I])
@@ -71,11 +75,25 @@ void Input()
 		SDL_Delay(100);
 	}
 
-	if (p1Paddle.position.x > 4.0f) p1Paddle.position.x = 4.0f;
-	if (p1Paddle.position.x < -4.0f) p1Paddle.position.x = -4.0f;
+	if (p1Paddle.position.x > PADDLE_BOUNDS) p1Paddle.position.x = PADDLE_BOUNDS;
+	if (p1Paddle.position.x < -PADDLE_BOUNDS) p1Paddle.position.x = -PADDLE_BOUNDS;
 
-	if (p2Paddle.position.x > 4.0f) p2Paddle.position.x = 4.0f;
-	if (p2Paddle.position.x < -4.0f) p2Paddle.position.x = -4.0f;
+	if (p2Paddle.position.x > PADDLE_BOUNDS) p2Paddle.position.x = PADDLE_BOUNDS;
+	if (p2Paddle.position.x < -PADDLE_BOUNDS) p2Paddle.position.x = -PADDLE_BOUNDS;
+}
+
+void UpdateBall()
+{
+	ball.position += ball.velocity * delta_time;
+
+	// Collision Resolution
+	if (ball.position.x > 9.0f) ball.velocity.x *= -1;
+	if (ball.position.x < -9.0f) ball.velocity.x *= -1;
+
+	// Reset Ball
+	if (ball.position.z > 2.0f || ball.position.z < -18.0f) ball.position = { 0.0f, 0.0f, -6.0f };
+
+
 }
 
 void Draw()
@@ -89,16 +107,20 @@ void Draw()
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)(WINDOW_WIDTH) / (float)(WINDOW_HEIGHT), 0.1f, 100.0f);
 
-	view = glm::rotate(view, glm::radians(30.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	view = glm::translate(view, glm::vec3(0.0f, -8.0f, -8.0f));
+	view = glm::rotate(view, glm::radians(60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	view = glm::translate(view, glm::vec3(0.0f, -16.0f, -5.0f));
 
 	glBindTexture(GL_TEXTURE_2D, texture);
 	p1Paddle.UpdateEntity();
 	p2Paddle.UpdateEntity();
+	arena.UpdateEntity();
 	ball.UpdateEntity();
 
 	def.setUniMat4("view", view);
 	def.setUniMat4("projection", projection);
+
+	def.setUniMat4("model", arena.m_transform);
+	arena.DrawEntity();
 	
 	def.setUniMat4("model", p1Paddle.m_transform);
 	p1Paddle.DrawEntity();
@@ -124,6 +146,7 @@ void Destroy()
 void LoadTexture()
 {
 	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load("resources/textures/UV-Grid.png", &width, &height, &nrChannels, 0);
 
 	if (!data) { printf("Error loading texture!\n"); exit(1); }
@@ -148,10 +171,11 @@ void SetupGL()
 	def.compileShader();
 	def.runShader();
 
-	p1Paddle.m_mesh.LoadMesh("resources/meshes/cube.obj");
-	p2Paddle.m_mesh.LoadMesh("resources/meshes/cube.obj");
+	p1Paddle.m_mesh.LoadMesh("resources/meshes/paddle.obj");
+	p2Paddle.m_mesh.LoadMesh("resources/meshes/paddle.obj");
 	ball.m_mesh.LoadMesh("resources/meshes/sphere.obj");
-	
+	arena.m_mesh.LoadMesh("resources/meshes/arena.obj");
+
 	LoadTexture();
 }
 
@@ -211,10 +235,12 @@ int main(int argc, char** argv)
 {
 	Init();
 	SetupGL();
-
+	ball.velocity.z = 6.0f;
+	//ball.velocity.x = 4.0f;
 	while (m_isRunning)
 	{
 		Input();
+		UpdateBall();
 		Draw();
 	}
 

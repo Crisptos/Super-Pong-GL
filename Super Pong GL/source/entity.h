@@ -10,6 +10,7 @@ public:
 		position = glm::vec3(0.0f);
 		rotation = glm::vec3(1.0f);
 		scale = glm::vec3(1.0f);
+		velocity = glm::vec3(0.0f);
 	}
 
 	Entity(glm::vec3 init_position) 
@@ -18,6 +19,7 @@ public:
 		position = init_position;
 		rotation = glm::vec3(0.0f);
 		scale = glm::vec3(1.0f);
+		velocity = glm::vec3(0.0f);
 	}
 
 	void UpdateEntity() 
@@ -35,6 +37,8 @@ public:
 	glm::vec3 position;
 	glm::vec3 rotation;
 	glm::vec3 scale;
+
+	glm::vec3 velocity;
 
 	Mesh m_mesh;
 };

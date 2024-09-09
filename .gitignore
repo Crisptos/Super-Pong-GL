@@ -98,6 +98,11 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
+# Meshes for the game
+!paddle.obj
+!ball.obj
+!arena.obj
+
 # Chutzpah Test files
 _Chutzpah*
 
