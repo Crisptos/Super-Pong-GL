@@ -17,6 +17,16 @@
 const float PADDLE_BOUNDS = 5.75f;
 const float PADDLE_SPEED = 8.0f;
 
+// Prototypes
+void Input();
+void UpdateBall();
+bool IsPaddleIntersectBall(glm::vec3 paddle_pos);
+void Draw();
+void Destroy();
+void LoadTexture();
+void SetupGL();
+void Init();
+
 // Windowing
 SDL_Window* m_Window;
 SDL_GLContext m_glContext;
@@ -26,7 +36,7 @@ bool m_isRunning = false;
 Entity p1Paddle({0.0f, 0.0f, 2.0f});
 Entity p2Paddle({ 0.0f, 0.0f, -18.0f });
 Entity ball({0.0f, 0.0f, -6.0f});
-Entity arena({ 0.0f, 0.0f, -8.0f });
+Entity arena({ 0.0f, -1.0f, -8.0f });
 
 Shader def;
 
@@ -72,6 +82,7 @@ void Input()
 	{
 		printf("P1 Pos (X: %.2f, Y: %.2f, Z: %.2f\n", p1Paddle.position.x, p1Paddle.position.y, p1Paddle.position.z);
 		printf("P2 Pos (X: %.2f, Y: %.2f, Z: %.2f\n", p2Paddle.position.x, p2Paddle.position.y, p2Paddle.position.z);
+		printf("Ball Pos (X: %.2f, Y: %.2f, Z: %.2f\n", ball.position.x, ball.position.y, ball.position.z);
 		SDL_Delay(100);
 	}
 
@@ -86,14 +97,62 @@ void UpdateBall()
 {
 	ball.position += ball.velocity * delta_time;
 
-	// Collision Resolution
-	if (ball.position.x > 9.0f) ball.velocity.x *= -1;
-	if (ball.position.x < -9.0f) ball.velocity.x *= -1;
+	// Collusion resolution with arena bounds
+	if (ball.position.x > 9.0f)
+	{
+		ball.velocity.x *= -1;
+		printf("Bounce!\n");
+		return;
+	}
 
-	// Reset Ball
-	if (ball.position.z > 2.0f || ball.position.z < -18.0f) ball.position = { 0.0f, 0.0f, -6.0f };
+	if (ball.position.x < -9.0f)
+	{
+		ball.velocity.x *= -1;
+		printf("Bounce!\n");
+		return;
+	}
 
+	// Collision resolution with paddle bounding boxes
+	// Player 1 Collision
+	if (IsPaddleIntersectBall(p1Paddle.position))
+	{
+		printf("I hit P1!\n");
+		ball.velocity.z *= -1;
+	}
 
+	// Player 2 Collision
+	if (IsPaddleIntersectBall(p2Paddle.position))
+	{
+		printf("I hit P1!\n");
+		ball.velocity.z *= -1;
+	}
+
+	// Collision resolution with goal area
+	if (ball.position.z < -20.0f) 
+	{ 
+		ball.position = { 0.0f, 0.0f, -6.0f }; 
+		printf("Score for P2!\n");
+		return;
+	} // P1 Scores
+
+	if (ball.position.z > 4.0f) 
+	{ 
+		ball.position = { 0.0f, 0.0f, -6.0f }; 
+		printf("Score for P2!\n");
+		return;
+	} // P2 Scores
+}
+
+bool IsPaddleIntersectBall(glm::vec3 paddle_pos)
+{
+	// Euclidean distance between Point - Sphere
+	float distance = sqrtf(
+		((paddle_pos.x - ball.position.x) * (paddle_pos.x - ball.position.x)) +
+		((paddle_pos.y - ball.position.y) * (paddle_pos.y - ball.position.y)) +
+		((paddle_pos.z - ball.position.z) * (paddle_pos.z - ball.position.z))
+	);
+
+	return distance <= 1.0f;
 }
 
 void Draw()
@@ -235,7 +294,10 @@ int main(int argc, char** argv)
 {
 	Init();
 	SetupGL();
+
+	// TODO put this stuff somewhere cleaner
 	ball.velocity.z = 6.0f;
+	ball.scale = { 0.5f, 0.5f, 0.5f };
 	//ball.velocity.x = 4.0f;
 	while (m_isRunning)
 	{

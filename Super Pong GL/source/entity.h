@@ -4,33 +4,11 @@
 class Entity
 {
 public:
-	Entity() 
-	{ 
-		m_transform = glm::mat4(1.0f);
-		position = glm::vec3(0.0f);
-		rotation = glm::vec3(1.0f);
-		scale = glm::vec3(1.0f);
-		velocity = glm::vec3(0.0f);
-	}
+	Entity();
+	Entity(glm::vec3 init_position);
 
-	Entity(glm::vec3 init_position) 
-	{ 
-		m_transform = glm::mat4(1.0f);
-		position = init_position;
-		rotation = glm::vec3(0.0f);
-		scale = glm::vec3(1.0f);
-		velocity = glm::vec3(0.0f);
-	}
-
-	void UpdateEntity() 
-	{
-		m_transform = glm::mat4(1.0f);
-		// Scale -> Rotate -> Transform
-		m_transform = glm::translate(m_transform, position);
-		// rotate
-		//m_transform = glm::scale(m_transform, scale);
-	};
-	void DrawEntity() { m_mesh.DrawMesh(); }
+	void UpdateEntity();
+	void DrawEntity();
 
 	glm::mat4 m_transform;
 

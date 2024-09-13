@@ -7,7 +7,8 @@ Mesh::Mesh()
 
 Mesh::~Mesh()
 {
-
+	glDeleteVertexArrays(1, &m_VAO);
+	glDeleteBuffers(1, &m_VBO);
 }
 
 void Mesh::LoadMesh(std::string filepath)

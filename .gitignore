@@ -100,7 +100,7 @@ StyleCopReport.xml
 
 # Meshes for the game
 !paddle.obj
-!ball.obj
+!sphere.obj
 !arena.obj
 
 # Chutzpah Test files
