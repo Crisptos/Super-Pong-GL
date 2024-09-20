@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <cmath>
 #include "glad/glad.h"
 #define SDL_MAIN_HANDLED
 #include "SDL.h"
@@ -123,7 +124,7 @@ void UpdateBall()
 	// Player 2 Collision
 	if (IsPaddleIntersectBall(p2Paddle.position))
 	{
-		printf("I hit P1!\n");
+		printf("I hit P2!\n");
 		ball.velocity.z *= -1;
 	}
 
@@ -145,11 +146,17 @@ void UpdateBall()
 
 bool IsPaddleIntersectBall(glm::vec3 paddle_pos)
 {
+	// Closest point to the sphere within the AABB box of the paddle
+	const float x = std::fmaxf(paddle_pos.x - 3.0f, std::fminf(ball.position.x, paddle_pos.x + 3.0f));
+	const float y = std::fmaxf(paddle_pos.y, std::fminf(ball.position.y, paddle_pos.y));;
+	const float z = std::fmaxf(paddle_pos.z - 0.5f, std::fminf(ball.position.z, paddle_pos.z + 0.5f));;
+
+
 	// Euclidean distance between Point - Sphere
 	float distance = sqrtf(
-		((paddle_pos.x - ball.position.x) * (paddle_pos.x - ball.position.x)) +
-		((paddle_pos.y - ball.position.y) * (paddle_pos.y - ball.position.y)) +
-		((paddle_pos.z - ball.position.z) * (paddle_pos.z - ball.position.z))
+		((x - ball.position.x) * (x - ball.position.x)) +
+		((y - ball.position.y) * (y - ball.position.y)) +
+		((z - ball.position.z) * (z - ball.position.z))
 	);
 
 	return distance <= 1.0f;
@@ -298,7 +305,7 @@ int main(int argc, char** argv)
 	// TODO put this stuff somewhere cleaner
 	ball.velocity.z = 6.0f;
 	ball.scale = { 0.5f, 0.5f, 0.5f };
-	//ball.velocity.x = 4.0f;
+	ball.velocity.x = 4.0f;
 	while (m_isRunning)
 	{
 		Input();
